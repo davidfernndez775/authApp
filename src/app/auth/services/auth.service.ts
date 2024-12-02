@@ -1,13 +1,14 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environments';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { AuthStatus, User } from '../interfaces';
+import { map, Observable, of, tap } from 'rxjs';
+import { AuthStatus, LoginResponse, User } from '../interfaces';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  // *variables internas del servicio
   // importamos la url del endpoint
   private readonly baseUrl: string = environment.baseUrl;
   // inyectamos el servicio http para las peticiones
@@ -17,10 +18,30 @@ export class AuthService {
   private _currentUser = signal<User | null>(null);
   // variable para guardar el estado de autenticacion
   private _authStatus = signal<AuthStatus>(AuthStatus.checking);
+  // *variables al mundo exterior
+  // creamos una variable publica que tome el valor del usuario, se usa computed
+  // para que su valor dependa exclusivamente de la variable privada. Nadie puede
+  // redefinirla por su cuenta
+  public currentUser = computed(() => this._currentUser());
+  // mismo procedimiento con la variable authStatus
+  public authStatus = computed(() => this._authStatus());
 
   constructor() {}
 
   login(email: string, password: string): Observable<boolean> {
-    return of(true);
+    const url = `${this.baseUrl}/auth/login`;
+    const body = { email: email, password: password };
+    return this.http.post<LoginResponse>(url, body).pipe(
+      tap(({ user, token }) => {
+        // cuando se asignen los valores automaticamente se sobreescriben las variables
+        // privadas y luego las publicas
+        this._currentUser.set(user);
+        this._authStatus.set(AuthStatus.authenticated);
+        // guardamos el token
+        localStorage.setItem('token', token);
+      }),
+      map(() => true)
+      // todo: errores
+    );
   }
 }
