@@ -1,9 +1,28 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 @Component({
   standalone: true,
-  imports: [],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
 })
-export class LoginPageComponent {}
+export class LoginPageComponent {
+  private fb = inject(FormBuilder);
+
+  public myForm: FormGroup = this.fb.group({
+    // recuerda cambiar el email por un validador personalizado tipo expresion regular
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+  });
+
+  login() {
+    console.log(this.myForm.value);
+  }
+}
