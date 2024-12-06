@@ -1,8 +1,13 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environments';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
-import { AuthStatus, LoginResponse, User } from '../interfaces';
+import {
+  AuthStatus,
+  CheckTokenResponse,
+  LoginResponse,
+  User,
+} from '../interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -39,11 +44,36 @@ export class AuthService {
         this._authStatus.set(AuthStatus.authenticated);
         // guardamos el token
         localStorage.setItem('token', token);
-        console.log({ user, token });
       }),
       map(() => true),
       // todo: errores
       catchError((err) => throwError(() => err.error.message))
+    );
+  }
+  // *funcion para chequear la validez del token
+  checkAuthStatus(): Observable<boolean> {
+    // definimos el endpoint en el backend para hacer la comprobacion
+    const url = `${this.baseUrl}/auth/check-token`;
+    // obtenemos el token almacenado en el local storage
+    const token = localStorage.getItem('token');
+    // comprobamos que exista un token en el local storage
+    if (!token) return of(false);
+    // si existe enviamos el token al backend, recordar que el token
+    // viaja en los headers de la peticion
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get<CheckTokenResponse>(url, { headers }).pipe(
+      map(({ token, user }) => {
+        this._currentUser.set(user);
+        this._authStatus.set(AuthStatus.authenticated);
+        // guardamos el token
+        localStorage.setItem('token', token);
+        return true;
+      }),
+      // independiente del error el token no es valido
+      catchError(() => {
+        this._authStatus.set(AuthStatus.notAuthenticated);
+        return of(false);
+      })
     );
   }
 }
