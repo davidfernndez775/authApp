@@ -90,4 +90,10 @@ export class AuthService {
     // si no estamos en un navegador
     return of(false);
   }
+
+  logout() {
+    localStorage.removeItem('token');
+    this._currentUser.set(null);
+    this._authStatus.set(AuthStatus.notAuthenticated);
+  }
 }

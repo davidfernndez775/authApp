@@ -13,6 +13,6 @@ export const isAuthenticatedGuard: CanActivateFn = (route, state) => {
 
   // si no esta autenticado retorna al usuario a la pantalla de login y
   // regresa un false
-  router.navigateByUrl('/auth/login');
+  router.navigateByUrl('/auth');
   return false;
 };

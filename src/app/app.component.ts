@@ -19,8 +19,8 @@ export class AppComponent {
 
   // variable para determinar cuando termina un chequeo de autenticacion
   public finishAuthCheck = computed<boolean>(() => {
-    // // si todavia no ha terminado el chequeo devuelve false
-    // if (this.authService.authStatus() === AuthStatus.checking) return false;
+    // si todavia no ha terminado el chequeo devuelve false
+    if (this.authService.authStatus() === AuthStatus.checking) return false;
     // si ya termino el chequeo
     return true;
   });
@@ -37,7 +37,7 @@ export class AppComponent {
         return;
       case AuthStatus.notAuthenticated:
         console.log('not authenticated');
-        this.router.navigateByUrl('/auth/login');
+        this.router.navigateByUrl('/auth');
         return;
     }
   });
